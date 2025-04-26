@@ -75,13 +75,6 @@ module "eks" {
 
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = false
-  aws_auth_users = [
-    {
-      userarn  = "arn:aws:iam::539935451710:user/Group23-HU2"
-      username = "Group23-HU2"
-      groups   = ["system:masters"]
-    }
-  ]
   eks_managed_node_groups = {
     default = {
       desired_size    = 2
@@ -96,6 +89,22 @@ module "eks" {
     Environment = "dev"
   }
 }
+
+resource "aws_eks_cluster_auth" "eks_auth" {
+  cluster_name = module.eks.cluster_name
+  role_arn     = "arn:aws:iam::539935451710:role/YourEKSRole"
+
+  # Use to add the IAM user to the 'system:masters' group for full access
+  users = [
+    {
+      userarn  = "arn:aws:iam::539935451710:user/Group23-HU2"
+      username = "Group23-HU2"
+      groups   = ["system:masters"]
+    }
+  ]
+}
+
+
 
 # ECR Repository
 resource "aws_ecr_repository" "app_repo" {
