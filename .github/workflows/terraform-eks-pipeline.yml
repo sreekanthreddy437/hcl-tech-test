@@ -26,18 +26,24 @@ jobs:
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: 1.3.7  # Specify the Terraform version you use
-
+        
     # Step 4: Initialize Terraform
     - name: Terraform Init
-      run: terraform init
+      run: |
+        cd terraform-eks-code
+        terraform init
 
     # Step 5: Run Terraform Plan
     - name: Terraform Plan
-      run: terraform plan
+      run: |
+        cd terraform-eks-code
+        terraform plan
 
     # Step 6: Apply Terraform Plan (creates resources like VPC, EKS, and ECR)
     - name: Terraform Apply
-      run: terraform apply -auto-approve
+      run: |
+        cd terraform-eks-code
+        terraform plan
 
     # Step 7: Set up kubectl (to interact with the EKS cluster after setup)
     - name: Set up kubectl
