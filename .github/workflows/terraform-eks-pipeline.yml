@@ -43,7 +43,7 @@ jobs:
     - name: Terraform Apply
       run: |
         cd terraform-eks-code
-        terraform plan
+        terraform apply -auto-approve
 
     # Step 7: Set up kubectl (to interact with the EKS cluster after setup)
     - name: Set up kubectl
