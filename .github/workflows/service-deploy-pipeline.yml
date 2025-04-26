@@ -1,45 +1,68 @@
-name: Service Deployment Pipeline
+name: Build and Deploy to EKS
 
 on:
   push:
     branches:
-      - main
+      - main  # Trigger deployment on push to the main branch
 
 jobs:
-  docker-build-deploy:
-    runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: ubuntu-latest  # Can try switching to ubuntu-22.04 if issues persist
 
     steps:
-    # Step 1: Checkout the repository
+    # Step 1: Check out the repository
     - name: Checkout code
       uses: actions/checkout@v2
 
-    # Step 2: Set up Docker Buildx 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+    # Step 2: Set up AWS CLI
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
     # Step 3: Log in to Amazon ECR
     - name: Log in to Amazon ECR
-      uses: aws-actions/amazon-ecr-login@v1
-
-    # Step 4: Build Docker Image
-    - name: Build Docker Image
       run: |
-        docker build -t sreekanth-app .
-        docker tag sreekanth-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/sreekanth-ecr-repo:latest
+        aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-    # Step 5: Push Docker Image to Amazon ECR
-    - name: Push Docker Image to ECR
+    # Step 4: Build Docker image for appointment-service
+    - name: Build Docker image for appointment-service
       run: |
-        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/sreekanth-ecr-repo:latest
+        cd npm/appointment-service
+        docker build -t appointment-service .
 
-    # Step 6: Set up kubectl (to interact with the EKS cluster)
+    # Step 5: Build Docker image for patient-service
+    - name: Build Docker image for patient-service
+      run: |
+        cd npm/patient-service
+        docker build -t patient-service .
+
+    # Step 6: Tag and push the images to Amazon ECR
+    - name: Push Docker images to ECR
+      run: |
+        # Tag the images
+        docker tag appointment-service:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:appointment-service-latest
+        docker tag patient-service:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:patient-service-latest
+
+        # Push the images to ECR
+        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:appointment-service-latest
+        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:patient-service-latest
+
+    # Step 7: Set up kubectl manually (to ensure it works regardless of action issues)
     - name: Set up kubectl
       run: |
-        aws eks --region us-east-1 update-kubeconfig --name sreekanth-eks-cluster
-        kubectl get nodes
+        # Download kubectl binary
+        curl -s https://amazon-eks.s3.us-west-2.amazonaws.com/2023-03-30/bin/linux/amd64/kubectl -o kubectl
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
 
-    # Step 7: Deploy to EKS using kubectl
+        # Configure kubeconfig
+        aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name sreekanth-eks-cluster
+
+    # Step 8: Deploy to EKS using kubectl
     - name: Deploy to EKS
       run: |
-        kubectl apply -f k8s/deployment.yaml  # Assuming you have a Kubernetes deployment file in k8s/ folder
+        kubectl apply -f k8s/appointment-service-deployment.yaml
+        kubectl apply -f k8s/patient-service-deployment.yaml
