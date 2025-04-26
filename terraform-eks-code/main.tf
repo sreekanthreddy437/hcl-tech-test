@@ -1,3 +1,4 @@
+
 # VPC
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -74,7 +75,13 @@ module "eks" {
 
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = false
-
+  aws_auth_users = [
+    {
+      userarn  = "arn:aws:iam::539935451710:user/Group23-HU2"
+      username = "Group23-HU2"
+      groups   = ["system:masters"]
+    }
+  ]
   eks_managed_node_groups = {
     default = {
       desired_size    = 2
