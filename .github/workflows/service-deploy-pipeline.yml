@@ -1,0 +1,45 @@
+name: Service Deployment Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  docker-build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Step 2: Set up Docker Buildx 
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    # Step 3: Log in to Amazon ECR
+    - name: Log in to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@v1
+
+    # Step 4: Build Docker Image
+    - name: Build Docker Image
+      run: |
+        docker build -t sreekanth-app .
+        docker tag sreekanth-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/sreekanth-ecr-repo:latest
+
+    # Step 5: Push Docker Image to Amazon ECR
+    - name: Push Docker Image to ECR
+      run: |
+        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/sreekanth-ecr-repo:latest
+
+    # Step 6: Set up kubectl (to interact with the EKS cluster)
+    - name: Set up kubectl
+      run: |
+        aws eks --region us-east-1 update-kubeconfig --name sreekanth-eks-cluster
+        kubectl get nodes
+
+    # Step 7: Deploy to EKS using kubectl
+    - name: Deploy to EKS
+      run: |
+        kubectl apply -f k8s/deployment.yaml  # Assuming you have a Kubernetes deployment file in k8s/ folder
