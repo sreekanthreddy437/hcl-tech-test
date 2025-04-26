@@ -51,15 +51,15 @@ jobs:
         docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:patient-service-latest
 
     # Step 7: Set up kubectl manually (to ensure it works regardless of action issues)
-    - name: Set up kubectl
-      run: |
-        # Download kubectl binary
-        curl -s https://amazon-eks.s3.us-west-2.amazonaws.com/2023-03-30/bin/linux/amd64/kubectl -o kubectl
-        chmod +x ./kubectl
-        sudo mv ./kubectl /usr/local/bin/kubectl
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
 
-        # Configure kubeconfig
+    - name: Configure kubeconfig
+      run: |
         aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name sreekanth-eks-cluster
+
 
     # Step 8: Deploy to EKS using kubectl
     - name: Deploy to EKS
