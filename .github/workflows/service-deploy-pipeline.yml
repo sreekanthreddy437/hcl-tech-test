@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Can try switching to ubuntu-22.04 if issues persist
 
     steps:
     # Step 1: Check out the repository
@@ -22,7 +22,7 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    # Step 3: Log in to AWS ECR
+    # Step 3: Log in to Amazon ECR
     - name: Log in to Amazon ECR
       run: |
         aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
@@ -50,13 +50,16 @@ jobs:
         docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:appointment-service-latest
         docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:patient-service-latest
 
+    # Step 7: Set up kubectl manually (to ensure it works regardless of action issues)
     - name: Set up kubectl
-      uses: aws-actions/configure-kubeconfig@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
-        cluster-name: sreekanth-eks-cluster
+      run: |
+        # Download kubectl binary
+        curl -s https://amazon-eks.s3.us-west-2.amazonaws.com/2023-03-30/bin/linux/amd64/kubectl -o kubectl
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+
+        # Configure kubeconfig
+        aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name sreekanth-eks-cluster
 
     # Step 8: Deploy to EKS using kubectl
     - name: Deploy to EKS
