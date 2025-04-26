@@ -50,6 +50,18 @@ The workflow runs automatically on every push to the `main` branch.
   - Replicas: 2
   - Image:  
     `539935451710.dkr.ecr.us-east-1.amazonaws.com/sreekanth-ecr-repo:patient-service-latest`
+  - Container Port: 3001
+
+- **Service**
+  - Type: `LoadBalancer`
+  - Exposes port 80 → Targets container port 3001
+    
+###Appointment Service
+
+- **Deployment**
+  - Replicas: 2
+  - Image:  
+    `539935451710.dkr.ecr.us-east-1.amazonaws.com/sreekanth-ecr-repo:appointment-service-latest`
   - Container Port: 3000
 
 - **Service**
@@ -70,4 +82,11 @@ k8s/
  └── patient-service-deployment.yaml
 .github/
  └── workflows/
-     └── build-and-deploy.yaml
+     └── terraform-eks-pipeline.yml
+     └── service-deploy-pipeline.yml
+terraform-eks-code
+ └── main.tf
+ └── output.tf
+ └── provider.tf
+ 
+
