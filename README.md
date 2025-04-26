@@ -88,5 +88,12 @@ terraform-eks-code
  └── main.tf
  └── output.tf
  └── provider.tf
- 
+
+# 📌 Quick Links
+
+- **CloudWatch Dashboard**: [View Dashboard](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards/dashboard/Sreekanth_Reddy_EKS_Cluster_dashboard?start=PT1H&end=null)
+- **Appointment Service Health Check**: [Check Health](http://a30e5f86326f2434792c962dc1d20aeb-293716483.us-east-1.elb.amazonaws.com/health)
+- **Patient Service Health Check**: [Check Health](http://a2487b88e8e914f459e00eab8074262d-1988869648.us-east-1.elb.amazonaws.com/health)
+
+---
 
