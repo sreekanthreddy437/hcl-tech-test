@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: appointment-service
-          image: <your-ecr-uri>/appointment-service:latest
+          image: 539935451710.dkr.ecr.us-east-1.amazonaws.com/sreekanth-ecr-repo:appointment-service-latest
           ports:
             - containerPort: 3001
 ---

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: patient-service
-          image: <your-ecr-uri>/patient-service:latest
+          image: 539935451710.dkr.ecr.us-east-1.amazonaws.com/sreekanth-ecr-repo:patient-service-latest
           ports:
             - containerPort: 3000
 ---
