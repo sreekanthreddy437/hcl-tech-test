@@ -90,21 +90,34 @@ module "eks" {
   }
 }
 
-resource "aws_eks_cluster_auth" "eks_auth" {
-  cluster_name = module.eks.cluster_name
-  role_arn     = "arn:aws:iam::539935451710:role/YourEKSRole"
 
-  # Use to add the IAM user to the 'system:masters' group for full access
-  users = [
-    {
-      userarn  = "arn:aws:iam::539935451710:user/Group23-HU2"
-      username = "Group23-HU2"
-      groups   = ["system:masters"]
-    }
-  ]
+
+# Data Source to get the existing aws-auth configmap (to modify it)
+data "aws_eks_cluster_auth" "eks_auth" {
+  cluster_name = module.eks.cluster_name
 }
 
+# Update the aws-auth configmap to add an IAM user to the system:masters group (full access)
+resource "kubectl_manifest" "aws_auth_config_map" {
+  depends_on = [module.eks]
 
+  manifest = {
+    apiVersion = "v1"
+    kind       = "ConfigMap"
+    metadata = {
+      name      = "aws-auth"
+      namespace = "kube-system"
+    }
+    data = {
+      "mapUsers" = <<-EOT
+        - userarn: arn:aws:iam::539935451710:user/Group23-HU2
+          username: Group23-HU2
+          groups:
+            - system:masters
+      EOT
+    }
+  }
+}
 
 # ECR Repository
 resource "aws_ecr_repository" "app_repo" {
