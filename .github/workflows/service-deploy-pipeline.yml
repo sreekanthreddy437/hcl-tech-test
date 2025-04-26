@@ -20,12 +20,12 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+        aws-region: us-east-1
 
     # Step 3: Log in to Amazon ECR
     - name: Log in to Amazon ECR
       run: |
-        aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
 
     # Step 4: Build Docker image for appointment-service
     - name: Build Docker image for appointment-service
@@ -43,12 +43,12 @@ jobs:
     - name: Push Docker images to ECR
       run: |
         # Tag the images
-        docker tag appointment-service:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:appointment-service-latest
-        docker tag patient-service:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:patient-service-latest
+        docker tag appointment-service:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/sreekanth-ecr-repo:appointment-service-latest
+        docker tag patient-service:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/sreekanth-ecr-repo:patient-service-latest
 
         # Push the images to ECR
-        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:appointment-service-latest
-        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:patient-service-latest
+        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/sreekanth-ecr-repo:appointment-service-latest
+        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/sreekanth-ecr-repo:patient-service-latest
 
     # Step 7: Set up kubectl manually (to ensure it works regardless of action issues)
     - name: Install kubectl
@@ -58,7 +58,7 @@ jobs:
 
     - name: Configure kubeconfig
       run: |
-        aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name sreekanth-eks-cluster
+        aws eks --region us-east-1 update-kubeconfig --name sreekanth-eks-cluster
 
 
     # Step 8: Deploy to EKS using kubectl
