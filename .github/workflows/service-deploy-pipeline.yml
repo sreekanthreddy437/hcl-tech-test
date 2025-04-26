@@ -66,3 +66,5 @@ jobs:
       run: |
         kubectl apply -f k8s/appointment-service-deployment.yaml
         kubectl apply -f k8s/patient-service-deployment.yaml
+        kubectl get pods
+        kubectl get svc
