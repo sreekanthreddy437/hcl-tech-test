@@ -1,4 +1,11 @@
 
+# Provider configuration for Kubernetes
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.eks_auth.token
+}
+
 # VPC
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -75,6 +82,7 @@ module "eks" {
 
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = false
+
   eks_managed_node_groups = {
     default = {
       desired_size    = 2
@@ -90,33 +98,13 @@ module "eks" {
   }
 }
 
+# Add-ons
 
 
-# Data Source to get the existing aws-auth configmap (to modify it)
-data "aws_eks_cluster_auth" "eks_auth" {
-  cluster_name = module.eks.cluster_name
-}
-
-# Update the aws-auth configmap to add an IAM user to the system:masters group (full access)
-resource "kubectl_manifest" "aws_auth_config_map" {
-  depends_on = [module.eks]
-
-  manifest = {
-    apiVersion = "v1"
-    kind       = "ConfigMap"
-    metadata = {
-      name      = "aws-auth"
-      namespace = "kube-system"
-    }
-    data = {
-      "mapUsers" = <<-EOT
-        - userarn: arn:aws:iam::539935451710:user/Group23-HU2
-          username: Group23-HU2
-          groups:
-            - system:masters
-      EOT
-    }
-  }
+resource "aws_eks_addon" "kube_proxy" {
+  cluster_name  = module.eks.cluster_name
+  addon_name    = "kube-proxy"
+  addon_version = "v1.29.0-eksbuild.1"
 }
 
 # ECR Repository
@@ -128,24 +116,3 @@ resource "aws_ecr_repository" "app_repo" {
     Environment = "dev"
   }
 }
-
-# Add-ons
-resource "aws_eks_addon" "vpc_cni" {
-  cluster_name  = module.eks.cluster_name
-  addon_name    = "vpc-cni"
-  addon_version = "v1.15.1-eksbuild.1"
-}
-
-resource "aws_eks_addon" "coredns" {
-  cluster_name  = module.eks.cluster_name
-  addon_name    = "coredns"
-  addon_version = "v1.11.1-eksbuild.1"
-}
-
-resource "aws_eks_addon" "kube_proxy" {
-  cluster_name  = module.eks.cluster_name
-  addon_name    = "kube-proxy"
-  addon_version = "v1.29.0-eksbuild.1"
-}
-
-
