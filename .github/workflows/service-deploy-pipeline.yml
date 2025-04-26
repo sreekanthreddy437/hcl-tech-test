@@ -50,14 +50,13 @@ jobs:
         docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:appointment-service-latest
         docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sreekanth-ecr-repo:patient-service-latest
 
-    # Step 7: Set up kubectl for EKS
     - name: Set up kubectl
-      uses: aws-actions/configure-kubeconfig@v2
+      uses: aws-actions/configure-kubeconfig@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
-        cluster-name: sreekanth-eks-cluster  # Replace with your EKS cluster name
+        cluster-name: sreekanth-eks-cluster
 
     # Step 8: Deploy to EKS using kubectl
     - name: Deploy to EKS
